@@ -731,6 +731,7 @@ external block_address : llvalue -> llbasicblock -> llvalue
 (*--... Operations on global variables, functions, and aliases (globals) ...--*)
 external global_parent : llvalue -> llmodule = "llvm_global_parent"
 external is_declaration : llvalue -> bool = "llvm_is_declaration"
+external global_value_type : llvalue -> lltype = "llvm_global_value_type"
 external linkage : llvalue -> Linkage.t = "llvm_linkage"
 external set_linkage : Linkage.t -> llvalue -> unit = "llvm_set_linkage"
 external unnamed_addr : llvalue -> bool = "llvm_unnamed_addr"
@@ -1122,6 +1123,8 @@ let remove_string_call_site_attr f k i =
 
 (*--... Operations on call and invoke instructions (only) ..................--*)
 external num_arg_operands : llvalue -> int = "llvm_num_arg_operands"
+external get_called_function_type : llvalue -> lltype
+                                 = "llvm_get_called_function_type"
 external is_tail_call : llvalue -> bool = "llvm_is_tail_call"
 external set_tail_call : bool -> llvalue -> unit = "llvm_set_tail_call"
 external get_normal_dest : llvalue -> llbasicblock = "llvm_get_normal_dest"
@@ -1130,6 +1133,9 @@ external get_unwind_dest : llvalue -> llbasicblock = "llvm_get_unwind_dest"
 (*--... Operations on load/store instructions (only) .......................--*)
 external is_volatile : llvalue -> bool = "llvm_is_volatile"
 external set_volatile : bool -> llvalue -> unit = "llvm_set_volatile"
+external get_allocated_type : llvalue -> lltype = "llvm_get_allocated_type"
+external get_gep_source_element_type : llvalue -> lltype
+                                     = "llvm_get_gep_source_element_type"
 
 (*--... Operations on terminators ..........................................--*)
 
@@ -1256,6 +1262,8 @@ external add_case : llvalue -> llvalue -> llbasicblock -> unit
                   = "llvm_add_case"
 external switch_default_dest : llvalue -> llbasicblock =
     "llvm_switch_default_dest"
+external switch_case_value : llvalue -> int -> llvalue
+                          = "llvm_switch_case_value"
 external build_indirect_br : llvalue -> int -> llbuilder -> llvalue
                            = "llvm_build_indirect_br"
 external add_destination : llvalue -> llbasicblock -> unit

@@ -1291,6 +1291,12 @@ val global_parent : llvalue -> llmodule
     See the method [llvm::GlobalValue::isDeclaration]. *)
 val is_declaration : llvalue -> bool
 
+(** [global_value_type g] returns the type of the contents of the global value
+    [g]: the type of a global variable's initializer, or the function type of a
+    function. [type_of g] is only the pointer type.
+    See the method [llvm::GlobalValue::getValueType]. *)
+val global_value_type : llvalue -> lltype
+
 (** [linkage g] returns the linkage of the global value [g].
     See the method [llvm::GlobalValue::getLinkage]. *)
 val linkage : llvalue -> Linkage.t
@@ -1865,6 +1871,11 @@ val remove_string_call_site_attr : llvalue -> string -> AttrIndex.t -> unit
     [llvm::CallInst::getNumArgOperands]. *)
 val num_arg_operands : llvalue -> int
 
+(** [get_called_function_type ci] returns the function type of the call or
+    invoke instruction [ci], including whether it is variadic.
+    See the method [llvm::CallBase::getFunctionType]. *)
+val get_called_function_type : llvalue -> lltype
+
 (** [is_tail_call ci] is [true] if the call instruction [ci] is flagged as
     eligible for tail call optimization, [false] otherwise.
     See the method [llvm::CallInst::isTailCall]. *)
@@ -1897,6 +1908,18 @@ val is_volatile : llvalue -> bool
     See the methods [llvm::LoadInst::setVolatile] and
     [llvm::StoreInst::setVolatile]. *)
 val set_volatile : bool -> llvalue -> unit
+
+(** {7 Operations on alloca and getelementptr instructions (only)} *)
+
+(** [get_allocated_type ai] returns the type allocated by the [alloca]
+    instruction [ai]. [type_of ai] is only the pointer type.
+    See the method [llvm::AllocaInst::getAllocatedType]. *)
+val get_allocated_type : llvalue -> lltype
+
+(** [get_gep_source_element_type gep] returns the source element type of the
+    [getelementptr] instruction [gep], the type its first index steps over.
+    See the method [llvm::GetElementPtrInst::getSourceElementType]. *)
+val get_gep_source_element_type : llvalue -> lltype
 
 (** {7 Operations on terminators} *)
 
@@ -2099,6 +2122,12 @@ val add_case : llvalue -> llvalue -> llbasicblock -> unit
     instruction.
     See the method [llvm:;SwitchInst::getDefaultDest]. **)
 val switch_default_dest : llvalue -> llbasicblock
+
+(** [switch_case_value sw i] returns the case value of successor [i] of the
+    [switch] instruction [sw]. Successor [0] is the default destination, so [i]
+    must be at least [1]. Case values are not operands of the instruction.
+    See the method [llvm::SwitchInst::CaseHandle::getCaseValue]. **)
+val switch_case_value : llvalue -> int -> llvalue
 
 (** [build_indirect_br addr count b] creates a
     [indirectbr %addr]
