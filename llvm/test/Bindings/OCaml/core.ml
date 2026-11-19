@@ -504,6 +504,8 @@ let test_global_variables () =
     insist (not (is_declaration g));
     insist (not (is_declaration g2));
     insist ((global_initializer g) = (global_initializer g2));
+    insist (pointer_type context = type_of g);
+    insist (i32_type = global_value_type g);
 
     let g = define_qualified_global "QGVar02" forty_two32 3 m in
     let g2 = declare_qualified_global i32_type "QGVar03" 3 m ++
@@ -656,6 +658,7 @@ let test_functions () =
     insist (None = lookup_function "Fn1" m);
     let fn = declare_function "Fn1" ty m in
     insist (pointer_type context = type_of fn);
+    insist (ty = global_value_type fn);
     insist (is_declaration fn);
     insist (0 = Array.length (basic_blocks fn));
     insist (pointer_type context == type_of (declare_function "Fn1" ty2 m));
@@ -1094,6 +1097,7 @@ let test_builder () =
 
   group "miscellaneous"; begin
     (* CHECK: %build_call = tail call cc63 zeroext i32 @{{.*}}(i32 signext %P2, i32 %P1)
+     * CHECK: %build_vararg_call = call i32 (i32, ...) @VarArgFn(i32 %P1, i32 %P2)
      * CHECK: %build_select = select i1 %build_icmp, i32 %P1, i32 %P2
      * CHECK: %build_va_arg = va_arg ptr null, i32
      * CHECK: %build_extractelement = extractelement <4 x i32> %Vec1, i32 %P2
@@ -1103,6 +1107,17 @@ let test_builder () =
      * CHECK: %build_extractvalue = extractvalue{{.*}}%build_insertvalue1, 1
      *)
     let ci = build_call fty fn [| p2; p1 |] "build_call" atentry in
+    insist (fty = get_called_function_type ci);
+
+    (* A variadic call: the call type, not the argument count, says which
+       arguments are fixed. *)
+    let vty = var_arg_function_type i32_type [| i32_type |] in
+    let vfn = declare_function "VarArgFn" vty m in
+    insist (vty = global_value_type vfn);
+    let vci = build_call vty vfn [| p1; p2 |] "build_vararg_call" atentry in
+    insist (vty = get_called_function_type vci);
+    insist (is_var_arg (get_called_function_type vci));
+    insist (2 = num_arg_operands vci);
     insist (CallConv.c = instruction_call_conv ci);
     set_instruction_call_conv 63 ci;
     insist (63 = instruction_call_conv ci);
@@ -1266,6 +1281,7 @@ let test_builder () =
     let si = build_switch p1 bb3 1 (builder_at_end bb1) in begin
         ignore (add_case si (const_int i32_type 2) bb2);
         insist (switch_default_dest si = bb3);
+        insist (switch_case_value si 1 = const_int i32_type 2);
     end;
     insist (num_successors si = 2) ;
     insist (get_branch si = None) ;
@@ -1403,6 +1419,8 @@ let test_builder () =
      *)
     let alloca = build_alloca i32_type "build_alloca" b in
     let array_alloca = build_array_alloca i32_type p2 "build_array_alloca" b in
+    insist (i32_type = get_allocated_type alloca);
+    insist (i32_type = get_allocated_type array_alloca);
 
     let load = build_load i32_type array_alloca "build_load" b in
     ignore(set_alignment 4 load);
@@ -1421,7 +1439,9 @@ let test_builder () =
 
     let sty = struct_type context [| i32_type; i8_type |] in
     let alloca2 = build_alloca sty "build_alloca2" b in
-    ignore(build_struct_gep sty alloca2 1 "build_struct_gep" b);
+    insist (sty = get_allocated_type alloca2);
+    let struct_gep = build_struct_gep sty alloca2 1 "build_struct_gep" b in
+    insist (sty = get_gep_source_element_type struct_gep);
 
     let p = build_alloca i8_type "p" b in
     ignore(build_atomicrmw AtomicRMWBinOp.Xchg p (const_int i8_type 42)
