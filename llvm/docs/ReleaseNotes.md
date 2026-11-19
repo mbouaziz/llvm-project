@@ -497,6 +497,12 @@ Makes programs 10x faster by doing Special New Thing.
 
 * `builder` now takes an `llmodule` argument, instead of `llcontext`.
 
+* Added `global_value_type`, `get_allocated_type`,
+  `get_gep_source_element_type`, `get_called_function_type` and
+  `switch_case_value`, which recover type information that is no longer
+  available from pointer types, and switch case values, which are no longer
+  operands.
+
 ### Changes to the Python bindings
 
 ### Changes to the C API

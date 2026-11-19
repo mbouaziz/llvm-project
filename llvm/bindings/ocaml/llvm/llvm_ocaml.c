@@ -1300,6 +1300,11 @@ value llvm_is_declaration(value Global) {
   return Val_bool(LLVMIsDeclaration(Value_val(Global)));
 }
 
+/* llvalue -> lltype */
+value llvm_global_value_type(value Global) {
+  return to_val(LLVMGlobalGetValueType(Value_val(Global)));
+}
+
 /* llvalue -> Linkage.t */
 value llvm_linkage(value Global) {
   return Val_int(LLVMGetLinkage(Value_val(Global)));
@@ -1898,6 +1903,11 @@ value llvm_num_arg_operands(value V) {
   return Val_int(LLVMGetNumArgOperands(Value_val(V)));
 }
 
+/* llvalue -> lltype */
+value llvm_get_called_function_type(value V) {
+  return to_val(LLVMGetCalledFunctionType(Value_val(V)));
+}
+
 /* llvalue -> bool */
 value llvm_is_tail_call(value CallInst) {
   return Val_bool(LLVMIsTailCall(Value_val(CallInst)));
@@ -1932,6 +1942,18 @@ value llvm_is_volatile(value MemoryInst) {
 value llvm_set_volatile(value IsVolatile, value MemoryInst) {
   LLVMSetVolatile(Value_val(MemoryInst), Bool_val(IsVolatile));
   return Val_unit;
+}
+
+/*--.. Operations on alloca and getelementptr instructions (only) ..........--*/
+
+/* llvalue -> lltype */
+value llvm_get_allocated_type(value Alloca) {
+  return to_val(LLVMGetAllocatedType(Value_val(Alloca)));
+}
+
+/* llvalue -> lltype */
+value llvm_get_gep_source_element_type(value GEP) {
+  return to_val(LLVMGetGEPSourceElementType(Value_val(GEP)));
 }
 
 /*--.. Operations on terminators ...........................................--*/
@@ -2159,6 +2181,11 @@ value llvm_add_case(value Switch, value OnVal, value Dest) {
 value llvm_switch_default_dest(value Val) {
   LLVMBasicBlockRef BB = LLVMGetSwitchDefaultDest(Value_val(Val));
   return to_val(BB);
+}
+
+/* llvalue -> int -> llvalue */
+value llvm_switch_case_value(value Val, value I) {
+  return to_val(LLVMGetSwitchCaseValue(Value_val(Val), Int_val(I)));
 }
 
 /* llvalue -> int -> llbuilder -> llvalue */
